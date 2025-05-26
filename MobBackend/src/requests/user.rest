@@ -1,0 +1,38 @@
+### Register
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Alice",
+  "email": "alice@example.com",
+  "password": "test1234"
+}
+
+### Login
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "alice@example.com",
+  "password": "test1234"
+}
+
+### Get Me (Copy token from login response)
+GET http://localhost:3000/api/users/me
+Authorization: Bearer <token>
+
+### Create Transaction
+POST http://localhost:3000/api/transactions
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "accountId": 1,
+  "amount": 500,
+  "type": "debit",
+  "description": "Rent Payment"
+}
+
+### Get Transactions
+GET http://localhost:3000/api/transactions/1
+Authorization: Bearer <token>
