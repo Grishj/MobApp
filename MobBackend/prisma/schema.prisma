@@ -1,42 +1,140 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model User {
-  id        Int       @id @default(autoincrement())
-  name      String
-  email     String    @unique
-   phone     String    @unique
-  password  String
-  accounts  Account[]
-  createdAt DateTime  @default(now())
+  id          String   @id @default(cuid())
+  email       String   @unique
+  phone       String   @unique
+  firstName   String
+  lastName    String
+  dateOfBirth DateTime
+  address     String?
+  city        String?
+  state       String?
+  zipCode     String?
+  password    String
+  isVerified  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  role        UserRole @default(USER)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  accounts     Account[]
+  transactions Transaction[]
+  cards        Card[]
+
+  @@map("users")
 }
 
 model Account {
-  id           Int           @id @default(autoincrement())
-  userId       Int
-  balance      Float         @default(0.0)
-  transactions Transaction[]
-  user         User          @relation(fields: [userId], references: [id])
+  id            String      @id @default(cuid())
+  accountNumber String      @unique
+  accountType   AccountType
+  balance       Decimal     @default(0) @db.Decimal(15, 2)
+  currency      String      @default("USD")
+  isActive      Boolean     @default(true)
+  userId        String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relationships
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sentTransactions    Transaction[] @relation("SenderAccount")
+  receivedTransactions Transaction[] @relation("ReceiverAccount")
+  cards               Card[]
+
+  @@map("accounts")
 }
 
 model Transaction {
-  id          Int      @id @default(autoincrement())
-  accountId   Int
-  amount      Float
-  type        String   // 'credit' or 'debit'
-  description String?
+  id                String            @id @default(cuid())
+  type              TransactionType
+  amount            Decimal           @db.Decimal(15, 2)
+  currency          String            @default("USD")
+  description       String?
+  reference         String            @unique @default(cuid())
+  status            TransactionStatus @default(PENDING)
+  fee               Decimal?          @db.Decimal(10, 2)
+  exchangeRate      Decimal?          @db.Decimal(10, 6)
+  
+  // Sender Information
+  senderId          String
+  senderAccountId   String
+  
+  // Receiver Information (optional for some transaction types)
+  receiverAccountId String?
+  receiverName      String?
+  receiverEmail     String?
+  
+  // Timestamps
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  completedAt       DateTime?
+
+  // Relationships
+  sender            User    @relation(fields: [senderId], references: [id])
+  senderAccount     Account @relation("SenderAccount", fields: [senderAccountId], references: [id])
+  receiverAccount   Account? @relation("ReceiverAccount", fields: [receiverAccountId], references: [id])
+
+  @@map("transactions")
+}
+
+model Card {
+  id          String   @id @default(cuid())
+  cardNumber  String   @unique
+  cardType    CardType
+  expiryMonth Int
+  expiryYear  Int
+  cvv         String
+  holderName  String
+  isActive    Boolean  @default(true)
+  userId      String
+  accountId   String
   createdAt   DateTime @default(now())
-  account     Account  @relation(fields: [accountId], references: [id])
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("cards")
+}
+
+// Enums
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+  CREDIT
+}
+
+enum TransactionType {
+  TRANSFER
+  DEPOSIT
+  WITHDRAWAL
+  PAYMENT
+  REFUND
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum CardType {
+  DEBIT
+  CREDIT
 }

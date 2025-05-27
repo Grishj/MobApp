@@ -1,38 +1,85 @@
-### Register
+### Health Check
+GET http://localhost:3000/health
+
+### Register User
 POST http://localhost:3000/api/auth/register
 Content-Type: application/json
 
 {
-  "name": "Alice",
-  "email": "alice@example.com",
-  "password": "test1234"
+  "email": "john.doe@example.com",
+  "phone": "+1234567890",
+  "firstName": "John",
+  "lastName": "Doe",
+  "dateOfBirth": "1990-01-15",
+  "password": "SecurePass123!",
+  "address": "123 Main St",
+  "city": "New York",
+  "state": "NY",
+  "zipCode": "10001"
 }
 
-### Login
+### Login User
 POST http://localhost:3000/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "alice@example.com",
-  "password": "test1234"
+  "email": "john.doe@example.com",
+  "password": "SecurePass123!"
 }
 
-### Get Me (Copy token from login response)
-GET http://localhost:3000/api/users/me
-Authorization: Bearer <token>
+### Get User Profile
+GET http://localhost:3000/api/users/profile
+Authorization: Bearer your_jwt_token_here
 
-### Create Transaction
-POST http://localhost:3000/api/transactions
-Authorization: Bearer <token>
+### Update Profile
+PUT http://localhost:3000/api/users/profile
 Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
 
 {
-  "accountId": 1,
-  "amount": 500,
-  "type": "debit",
-  "description": "Rent Payment"
+  "firstName": "John Updated",
+  "address": "456 Updated St",
+  "city": "Los Angeles",
+  "state": "CA"
+}
+
+### Get User Accounts
+GET http://localhost:3000/api/users/accounts
+Authorization: Bearer your_jwt_token_here
+
+### Create Transfer Transaction
+POST http://localhost:3000/api/transactions
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+{
+  "type": "TRANSFER",
+  "amount": 100.50,
+  "description": "Payment for services",
+  "senderAccountId": "sender_account_id_here",
+  "receiverAccountId": "receiver_account_id_here"
+}
+
+### Create Deposit Transaction
+POST http://localhost:3000/api/transactions
+Content-Type: application/json
+Authorization: Bearer your_jwt_token_here
+
+{
+  "type": "DEPOSIT",
+  "amount": 500.00,
+  "description": "Salary deposit",
+  "senderAccountId": "account_id_here"
 }
 
 ### Get Transactions
-GET http://localhost:3000/api/transactions/1
-Authorization: Bearer <token>
+GET http://localhost:3000/api/transactions?page=1&limit=10
+Authorization: Bearer your_jwt_token_here
+
+### Get Account Balance
+GET http://localhost:3000/api/transactions/balance/account_id_here
+Authorization: Bearer your_jwt_token_here
+
+### Get Transaction by ID
+GET http://localhost:3000/api/transactions/transaction_id_here
+Authorization: Bearer your_jwt_token_here
